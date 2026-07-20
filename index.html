@@ -3,79 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>お買い物メモ</title>
-    
-    <!-- iOSでのスタンドアロン（アプリ化）設定 -->
+
+    <title>ListNote</title>
+
+    <meta name="application-name" content="ListNote">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="お買い物メモ">
-    
+    <meta name="apple-mobile-web-app-title" content="ListNote">
+    <meta name="theme-color" content="#5B5BF7">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
+        :root {
+            --bg: #f2f2f7;
+            --card: #ffffff;
+            --muted-card: #f7f7fa;
+            --text: #1c1c1e;
+            --subtext: #6e6e73;
+            --line: #e5e5ea;
+            --line-strong: #d1d1d6;
+            --primary: #5B5BF7;
+            --primary-dark: #4747d6;
+            --danger: #ff3b30;
+            --success: #10b981;
+            --shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f2f2f7; /* iOS システム背景色 */
+            background: var(--bg);
             margin: 0;
-            padding: 20px;
-            color: #1c1c1e;
+            padding: 12px;
+            color: var(--text);
         }
 
         .container {
-            max-width: 600px;
+            max-width: 760px;
             margin: 0 auto;
         }
 
-        /* 画面の切り替え用制御 */
         .view {
             display: none;
         }
+
         .view.active {
             display: block;
         }
 
-        /* --- 1. ホーム画面（メモアプリ風リスト一覧） --- */
-        .home-header {
+        .home-header,
+        .detail-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            gap: 12px;
+        }
+
+        .home-header {
+            margin-bottom: 16px;
+        }
+
+        .detail-header {
+            margin-bottom: 12px;
         }
 
         .home-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             margin: 0;
+            letter-spacing: -0.02em;
         }
 
-        .btn-new-list {
-            background-color: #007aff;
-            color: white;
+        .btn-new-list,
+        .btn-add-category,
+        .btn-sub-save,
+        .btn-primary,
+        .btn-secondary {
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
+            border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,122,255,0.2);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 14px;
+        }
+
+        .btn-new-list,
+        .btn-add-category,
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(91, 91, 247, 0.22);
+        }
+
+        .btn-new-list:active,
+        .btn-add-category:active,
+        .btn-primary:active {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #e9e9ef;
+            color: var(--text);
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            white-space: nowrap;
         }
 
         .lists-container {
-            background: #ffffff;
-            border-radius: 12px;
+            background: var(--card);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
         }
 
         .list-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #e5e5ea;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -85,241 +149,329 @@
         }
 
         .list-row:active {
-            background-color: #e5e5ea;
+            background: #efeff4;
         }
 
         .list-info {
+            min-width: 0;
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            flex: 1;
         }
 
         .list-row-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: #1c1c1e;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
         }
 
         .list-row-meta {
-            font-size: 13px;
-            color: #8e8e93;
+            font-size: 12px;
+            color: var(--subtext);
         }
 
         .btn-list-delete {
             background: none;
             border: none;
-            color: #ff3b30;
-            font-size: 14px;
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
-            padding: 8px;
+            padding: 8px 6px;
+            white-space: nowrap;
         }
 
-        /* 空っぽの状態の表示 */
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: #8e8e93;
-            font-size: 15px;
+            padding: 36px 20px;
+            color: var(--subtext);
+            font-size: 14px;
+            line-height: 1.7;
         }
 
-        /* --- 2. リスト詳細画面 --- */
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .btn-back {
-            background: none;
-            border: none;
-            color: #007aff;
-            font-size: 17px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 0;
-        }
-
-        /* 編集可能なタイトル */
         .detail-title-input {
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            background: transparent;
-            color: #1c1c1e;
             width: 100%;
-            outline: none;
-            padding: 5px 0;
-            border-bottom: 2px solid transparent;
-            margin-bottom: 15px;
-        }
-
-        .detail-title-input:focus {
-            border-bottom-color: #007aff;
-        }
-
-        /* 通知バナー */
-        .notification-banner {
-            background-color: #e3f2fd;
-            border: 1px solid #90caf9;
-            color: #0d47a1;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 13px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* 大カテゴリー追加の入力ボックス */
-        .add-category-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .add-category-box input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #c7c7cc;
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
-            background: #ffffff;
-        }
-
-        .btn-add-category {
-            background-color: #007aff;
-            color: white;
             border: none;
-            padding: 0 16px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* スクショ(image_3aac83.png)のデザインの枠を完全再現 */
-        .category-card {
-            background-color: #f1f3f5; /* グレーの背景色 */
-            border: 1px solid #d1d1d6; /* 枠線 */
-            border-radius: 14px; /* 丸み */
-            padding: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-
-        .category-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            outline: none;
+            color: var(--text);
+            font-size: 24px;
+            font-weight: 800;
+            padding: 8px 0 10px;
             margin-bottom: 12px;
         }
 
-        .category-name-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #0056b3; /* スクショと同じ青文字 */
+        .detail-title-input:focus {
+            border-bottom-color: var(--primary);
         }
 
-        .btn-add-sub-trigger {
-            background-color: #007aff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 10px;
+        .notification-banner {
+            background: #eef3ff;
+            border: 1px solid #cfd8ff;
+            color: #3743b5;
+            padding: 10px 12px;
+            border-radius: 12px;
+            text-align: center;
             font-size: 13px;
-            font-weight: bold;
+            margin-bottom: 14px;
             cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
         }
 
-        /* 小カテゴリー入力エリア */
-        .sub-input-row {
+        .add-category-box {
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
         }
 
+        .add-category-box input {
+            flex: 1;
+            min-width: 0;
+            padding: 11px 12px;
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            background: #fff;
+        }
+
+        .add-category-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .detail-empty {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            margin-top: 4px;
+        }
+
+        /* カテゴリーカードをかなりコンパクトに */
+        .category-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 56px;
+        }
+
+        .category-left {
+            min-width: 0;
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .category-name-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .category-meta {
+            font-size: 11px;
+            color: var(--subtext);
+        }
+
+        .category-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-small {
+            border: none;
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .btn-add-sub-trigger {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-toggle {
+            background: #eff1ff;
+            color: var(--primary-dark);
+            min-width: 34px;
+            padding: 7px 10px;
+        }
+
+        .category-body {
+            border-top: 1px solid var(--line);
+            background: #fbfbfd;
+            padding: 8px 10px 10px;
+        }
+
+        .sub-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
         .sub-input-row input {
             flex: 1;
-            padding: 8px 12px;
+            min-width: 0;
+            padding: 10px 12px;
             font-size: 14px;
-            border: 1px solid #c7c7cc;
-            border-radius: 6px;
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
             outline: none;
+            background: #fff;
+        }
+
+        .sub-input-row input:focus {
+            border-color: var(--primary);
         }
 
         .btn-sub-save {
-            background-color: #34c759;
-            color: white;
-            border: none;
+            border-radius: 10px;
             padding: 0 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
+            min-width: 62px;
+            background: var(--success);
+            box-shadow: none;
         }
 
-        /* 小カテゴリーのリスト構造 */
         .sub-items-list {
-            border-top: 1px solid #d1d1d6; /* スクショと同じ上の区切り線 */
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .sub-item-row {
-            display: flex;
-            flex-direction: column; /* メモを2行目に美しく配置するための縦並び */
-            padding: 12px 0;
-            border-bottom: 1px solid #d1d1d6; /* 各アイテム間の線 */
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 8px 10px;
         }
 
-        .sub-item-row:last-child {
-            border-bottom: none; /* 最後の線は消す */
-        }
-
-        .sub-item-main {
+        .sub-item-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
+            gap: 8px;
         }
 
         .sub-item-label {
-            font-size: 16px;
-            color: #1c1c1e;
             flex: 1;
-            padding-right: 10px;
+            min-width: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            word-break: break-word;
         }
 
-        /* サブ情報コンテナ（メモとリマインダーを2行目に美しく配置） */
-        .sub-item-sub-container {
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--line-strong);
+            background: #fff;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .count-num {
+            min-width: 16px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .btn-item-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 6px;
+        }
+
+        .sub-item-bottom {
             margin-top: 8px;
-            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        .sub-item-memo-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 13px;
-            color: #636366;
-            outline: none;
-            padding: 2px 0;
-            border-bottom: 1px dashed transparent;
+        .sub-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .sub-item-memo-input:focus {
-            border-bottom-color: #007aff;
-            color: #1c1c1e;
+        .memo-btn {
+            border: 1px solid #d8d8df;
+            background: #fff;
+            color: var(--text);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
         }
 
-        /* 繰り返し通知用のUIデザイン */
+        .memo-btn.has-note {
+            background: #eef3ff;
+            color: var(--primary-dark);
+            border-color: #cad4ff;
+        }
+
+        .memo-btn.has-note::after {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
         .reminder-group {
             display: flex;
             align-items: center;
@@ -328,154 +480,303 @@
         }
 
         .reminder-icon {
-            font-size: 13px;
-        }
-
-        .reminder-select, .reminder-sub-select, .reminder-time-input {
-            border: 1px solid #c7c7cc;
-            border-radius: 6px;
-            padding: 4px 6px;
             font-size: 12px;
-            background: #ffffff;
-            color: #1c1c1e;
+        }
+
+        .reminder-select,
+        .reminder-sub-select,
+        .reminder-time-input,
+        .reminder-datetime-input {
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            padding: 6px 8px;
+            font-size: 12px;
+            background: #fff;
+            color: var(--text);
             outline: none;
+            max-width: 100%;
         }
 
-        /* コントロール群 */
-        .item-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .reminder-status {
+            font-size: 12px;
+            color: var(--subtext);
+            line-height: 1.5;
         }
 
-        /* プラス・マイナスのボタン（スクショのように丸型） */
-        .counter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .reminder-status .notified {
+            display: inline-block;
+            background: #e9fff4;
+            color: #0a8f60;
+            border: 1px solid #bfead8;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-weight: 700;
+            margin-right: 6px;
         }
 
-        .btn-circle {
-            background-color: #ffffff;
-            border: 1px solid #d1d1d6;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 18px;
-            font-weight: 500;
-            color: #1c1c1e;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .btn-circle:active {
-            background-color: #e5e5ea;
-        }
-
-        .count-num {
-            font-size: 16px;
-            font-weight: 600;
-            min-width: 18px;
-            text-align: center;
-        }
-
-        .btn-item-delete {
-            background: none;
-            border: none;
-            color: #ff3b30;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        /* カードごとの削除ボタン */
         .btn-card-delete {
             background: none;
             border: none;
-            color: #8e8e93;
+            color: var(--danger);
             font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
-            width: 100%;
+            padding: 8px 4px 2px;
             text-align: right;
+            width: 100%;
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.38);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-title-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .modal-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--subtext);
+            word-break: break-word;
+        }
+
+        .btn-modal-close {
+            border: none;
+            background: #f0f0f5;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .modal-body {
+            padding: 14px 16px;
+        }
+
+        .memo-textarea {
+            width: 100%;
+            min-height: 180px;
+            resize: vertical;
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        .memo-textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 0 16px 16px;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .category-header {
+                min-height: 52px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- === 1. ホーム画面 (リスト一覧) === -->
+    <!-- ホーム -->
     <div id="homeView" class="view active">
         <div class="home-header">
-            <h1 class="home-title">マイリスト</h1>
-            <button class="btn-new-list" onclick="createNewList()">＋ 新規作成</button>
+            <h1 class="home-title">ListNote</h1>
+            <button class="btn-new-list" onclick="createNewList()">＋ リスト作成</button>
         </div>
-        
-        <div id="listsContainer" class="lists-container">
-            <!-- JSで動的にリスト一覧が作られます -->
-        </div>
+
+        <div id="listsContainer" class="lists-container"></div>
     </div>
 
-    <!-- === 2. 詳細画面 (お買い物リスト) === -->
+    <!-- 詳細 -->
     <div id="detailView" class="view">
         <div class="detail-header">
             <button class="btn-back" onclick="goBackToHome()">◀ リスト一覧</button>
-            <button class="btn-new-list" style="background-color: #8e8e93; box-shadow:none;" onclick="saveAndReload()">保存</button>
+            <button class="btn-secondary" onclick="saveAndReload()">保存</button>
         </div>
 
-        <!-- 編集可能なリスト名 -->
-        <input type="text" id="detailTitle" class="detail-title-input" value="" onchange="saveCurrentListTitle()">
+        <input
+            type="text"
+            id="detailTitle"
+            class="detail-title-input"
+            value=""
+            placeholder="リスト名"
+            oninput="saveCurrentListTitle()"
+        >
 
-        <!-- 通知許可バナー -->
         <div id="notifBanner" class="notification-banner" onclick="requestNotificationPermission()">
-            🔔 タップして通知を許可すると、リマインダーが届きます
+            🔔 通知を許可すると、リマインダーを受け取れます
         </div>
 
-        <!-- 新しい大カテゴリーの追加 -->
         <div class="add-category-box">
-            <input type="text" id="newCategoryInput" placeholder="新しい大カテゴリー（例：牛乳、野菜）">
+            <input
+                type="text"
+                id="newCategoryInput"
+                placeholder="新しい大カテゴリー（例：買い物 / TODO / 欲しいもの）"
+                onkeydown="if(event.key==='Enter'){ addMainCategory(); }"
+            >
             <button class="btn-add-category" onclick="addMainCategory()">追加</button>
         </div>
 
-        <!-- カテゴリーカード（中身）のコンテナ -->
         <div id="categoriesContainer"></div>
     </div>
 </div>
 
+<!-- メモモーダル -->
+<div id="memoModal" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title-wrap">
+                <h3 class="modal-title">メモ</h3>
+                <div id="memoModalSubtitle" class="modal-subtitle"></div>
+            </div>
+            <button class="btn-modal-close" onclick="closeMemoModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <textarea id="memoTextarea" class="memo-textarea" placeholder="補足メモを入力..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeMemoModal()">閉じる</button>
+            <button class="btn-primary" onclick="saveMemoFromModal()">保存</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // アプリ全体のデータ構造
+    const STORAGE_KEY_NEW = 'ListNote_Lists';
+    const STORAGE_KEY_OLD = 'shoppingApp_Lists';
+
     let appState = {
-        lists: [] // 各リスト: { id, title, date, categories: [ { name, items: [ { name, count, reminder, memo } ] } ] }
+        lists: []
     };
-    
-    // 現在開いているリストのID
+
     let activeListId = null;
 
-    // 起動時にデータをLocalStorageから読み込む
+    let uiState = {
+        expandedCategories: {},
+        subInputVisible: {},
+        memoTarget: null
+    };
+
     window.onload = function() {
-        const savedData = localStorage.getItem('shoppingApp_Lists');
-        if (savedData) {
+        loadState();
+        renderHome();
+        updateNotificationBanner();
+        startReminderMonitor();
+    };
+
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMemoModal();
+        }
+    });
+
+    function loadState() {
+        const savedNew = localStorage.getItem(STORAGE_KEY_NEW);
+        const savedOld = localStorage.getItem(STORAGE_KEY_OLD);
+        const raw = savedNew || savedOld;
+
+        if (raw) {
             try {
-                appState = JSON.parse(savedData);
-            } catch(e) {
-                console.error("データの破損を検出しました。リセットします。");
+                appState = JSON.parse(raw);
+            } catch (e) {
+                console.error('データの読み込みに失敗しました。初期化します。', e);
+                appState = { lists: [] };
             }
-        } else {
-            // 初期サンプルデータ（使い方のイメージが湧きやすいように）
+        }
+
+        normalizeAppState();
+
+        if (!appState.lists.length) {
             appState.lists = [
                 {
-                    id: "list-sample",
-                    title: "いつもの買い出し",
+                    id: 'list-sample',
+                    title: 'サンプルリスト',
                     date: getFormattedDate(),
                     categories: [
                         {
-                            name: "牛乳",
+                            name: '買い物',
                             items: [
-                                { name: "無脂肪牛乳", count: 1, reminder: "18:00", memo: "いつも買う青いパッケージのもの" },
-                                { name: "いちご牛乳", count: 2, reminder: "", memo: "こども用のおやつ" }
+                                {
+                                    name: '牛乳',
+                                    count: 1,
+                                    memo: 'いつものもの',
+                                    reminderType: 'daily',
+                                    reminderValue: '',
+                                    reminderTime: '18:00',
+                                    reminderOnceAt: '',
+                                    onceNotifiedAt: '',
+                                    lastNotifiedMinute: ''
+                                }
+                            ]
+                        },
+                        {
+                            name: 'やること',
+                            items: [
+                                {
+                                    name: '郵便を出す',
+                                    count: 1,
+                                    memo: '帰りにポストへ',
+                                    reminderType: 'once',
+                                    reminderValue: '',
+                                    reminderTime: '',
+                                    reminderOnceAt: getSuggestedOnceDateTime(),
+                                    onceNotifiedAt: '',
+                                    lastNotifiedMinute: ''
+                                }
                             ]
                         }
                     ]
@@ -483,30 +784,117 @@
             ];
             saveAllToStorage();
         }
-        
-        renderHome();
-        updateNotificationBanner();
-        startReminderMonitor();
-    };
-
-    // データをローカルストレージに保存
-    function saveAllToStorage() {
-        localStorage.setItem('shoppingApp_Lists', JSON.stringify(appState));
     }
 
-    // 現在の日時を取得するヘルパー
+    function normalizeAppState() {
+        if (!appState || typeof appState !== 'object') appState = { lists: [] };
+        if (!Array.isArray(appState.lists)) appState.lists = [];
+
+        appState.lists = appState.lists.map((list, index) => {
+            const normalized = {
+                id: list.id || ('list-' + Date.now() + '-' + index),
+                title: typeof list.title === 'string' ? list.title : '無題のリスト',
+                date: list.date || getFormattedDate(),
+                categories: Array.isArray(list.categories) ? list.categories : []
+            };
+
+            normalized.categories = normalized.categories.map((cat) => {
+                const category = {
+                    name: typeof cat.name === 'string' ? cat.name : '無題の大カテゴリー',
+                    items: Array.isArray(cat.items) ? cat.items : []
+                };
+
+                category.items = category.items.map((item) => {
+                    const normalizedItem = {
+                        name: typeof item.name === 'string' ? item.name : '無題の項目',
+                        count: Math.max(1, parseInt(item.count, 10) || 1),
+                        memo: typeof item.memo === 'string' ? item.memo : '',
+                        reminder: typeof item.reminder === 'string' ? item.reminder : '',
+                        reminderType: typeof item.reminderType === 'string' ? item.reminderType : '',
+                        reminderValue: typeof item.reminderValue === 'string' ? item.reminderValue : '',
+                        reminderTime: typeof item.reminderTime === 'string' ? item.reminderTime : '',
+                        reminderOnceAt: typeof item.reminderOnceAt === 'string' ? item.reminderOnceAt : '',
+                        onceNotifiedAt: typeof item.onceNotifiedAt === 'string' ? item.onceNotifiedAt : '',
+                        lastNotifiedMinute: typeof item.lastNotifiedMinute === 'string' ? item.lastNotifiedMinute : ''
+                    };
+
+                    // 旧データの reminder を daily に移行
+                    if (normalizedItem.reminder && !normalizedItem.reminderType) {
+                        normalizedItem.reminderType = 'daily';
+                        normalizedItem.reminderTime = normalizedItem.reminder;
+                        normalizedItem.reminder = '';
+                    }
+
+                    if (
+                        (normalizedItem.reminderType === 'daily' ||
+                         normalizedItem.reminderType === 'weekly' ||
+                         normalizedItem.reminderType === 'monthly') &&
+                        !normalizedItem.reminderTime
+                    ) {
+                        normalizedItem.reminderTime = '12:00';
+                    }
+
+                    if (normalizedItem.reminderType === 'weekly' && !normalizedItem.reminderValue) {
+                        normalizedItem.reminderValue = '1';
+                    }
+
+                    if (normalizedItem.reminderType === 'monthly' && !normalizedItem.reminderValue) {
+                        normalizedItem.reminderValue = '1';
+                    }
+
+                    if (normalizedItem.reminderType === 'once' && !normalizedItem.reminderOnceAt) {
+                        normalizedItem.reminderOnceAt = getSuggestedOnceDateTime();
+                    }
+
+                    return normalizedItem;
+                });
+
+                return category;
+            });
+
+            return normalized;
+        });
+
+        saveAllToStorage();
+    }
+
+    function saveAllToStorage() {
+        const json = JSON.stringify(appState);
+        localStorage.setItem(STORAGE_KEY_NEW, json);
+        localStorage.setItem(STORAGE_KEY_OLD, json);
+    }
+
     function getFormattedDate() {
         const d = new Date();
-        return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
-    // --- ホーム画面の描画 ---
+    function getActiveList() {
+        return appState.lists.find(l => l.id === activeListId);
+    }
+
+    function touchActiveList() {
+        const list = getActiveList();
+        if (list) {
+            list.date = getFormattedDate();
+        }
+    }
+
+    function getTotalItemCount(list) {
+        return list.categories.reduce((sum, cat) => sum + cat.items.length, 0);
+    }
+
     function renderHome() {
         const container = document.getElementById('listsContainer');
         container.innerHTML = '';
 
         if (appState.lists.length === 0) {
-            container.innerHTML = `<div class="empty-state">リストがまだありません。<br>右上の「新規作成」から作りましょう！</div>`;
+            container.innerHTML = `
+                <div class="empty-state">
+                    リストがありません。<br>
+                    「リスト作成」から新しいリストを作成してください。
+                </div>
+            `;
             return;
         }
 
@@ -515,53 +903,58 @@
             row.className = 'list-row';
             row.onclick = () => openList(list.id);
 
-            // 合計アイテム数を計算
-            let itemCount = 0;
-            list.categories.forEach(cat => itemCount += cat.items.length);
+            const itemCount = getTotalItemCount(list);
+            const categoryCount = list.categories.length;
 
             row.innerHTML = `
                 <div class="list-info">
-                    <div class="list-row-title">${escapeHtml(list.title || "無題のリスト")}</div>
-                    <div class="list-row-meta">${list.date} · ${itemCount}件のアイテム</div>
+                    <div class="list-row-title">${escapeHtml(list.title || '無題のリスト')}</div>
+                    <div class="list-row-meta">${escapeHtml(list.date)} ・ ${categoryCount}カテゴリ / ${itemCount}項目</div>
                 </div>
                 <button class="btn-list-delete" onclick="deleteList(event, '${list.id}')">削除</button>
             `;
+
             container.appendChild(row);
         });
     }
 
-    // 新規リストの作成
     function createNewList() {
         const newList = {
-            id: "list-" + Date.now(),
-            title: "新規お買い物リスト",
+            id: 'list-' + Date.now(),
+            title: '新しいリスト',
             date: getFormattedDate(),
             categories: []
         };
-        appState.lists.unshift(newList); // 新しいものを先頭に
+
+        appState.lists.unshift(newList);
         saveAllToStorage();
         renderHome();
         openList(newList.id);
     }
 
-    // リストの削除
     function deleteList(event, id) {
-        event.stopPropagation(); // 行のクリックイベントが発生しないようにする
-        if (confirm("この買い物リストを完全に削除しますか？")) {
-            appState.lists = appState.lists.filter(list => list.id !== id);
-            saveAllToStorage();
-            renderHome();
+        event.stopPropagation();
+
+        if (!confirm('このリストを削除しますか？')) return;
+
+        appState.lists = appState.lists.filter(list => list.id !== id);
+        saveAllToStorage();
+        renderHome();
+
+        if (activeListId === id) {
+            goBackToHome();
         }
     }
 
-    // --- 画面切り替え処理 ---
     function openList(id) {
         activeListId = id;
-        const list = appState.lists.find(l => l.id === id);
+        uiState.expandedCategories = {};
+        uiState.subInputVisible = {};
+
+        const list = getActiveList();
         if (!list) return;
 
-        // 値をセットして画面切り替え
-        document.getElementById('detailTitle').value = list.title;
+        document.getElementById('detailTitle').value = list.title || '';
         document.getElementById('homeView').classList.remove('active');
         document.getElementById('detailView').classList.add('active');
 
@@ -570,6 +963,7 @@
 
     function goBackToHome() {
         activeListId = null;
+        closeMemoModal();
         document.getElementById('detailView').classList.remove('active');
         document.getElementById('homeView').classList.add('active');
         renderHome();
@@ -577,373 +971,603 @@
 
     function saveAndReload() {
         saveAllToStorage();
-        alert("データを保存しました！");
+        alert('保存しました');
     }
 
-    // タイトルの変更保存
     function saveCurrentListTitle() {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.title = document.getElementById('detailTitle').value.trim() || "無題のリスト";
-            list.date = getFormattedDate(); // 更新日
-            saveAllToStorage();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.title = document.getElementById('detailTitle').value.trim() || '無題のリスト';
+        touchActiveList();
+        saveAllToStorage();
     }
 
-    // --- 詳細画面の描画 ---
     function renderDetail() {
-        const list = appState.lists.find(l => l.id === activeListId);
+        const list = getActiveList();
         const container = document.getElementById('categoriesContainer');
         container.innerHTML = '';
 
         if (!list) return;
 
+        if (list.categories.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state detail-empty">
+                    まだ大カテゴリーがありません。<br>
+                    上の入力欄から追加してください。
+                </div>
+            `;
+            return;
+        }
+
         list.categories.forEach((category, cIdx) => {
+            const expanded = !!uiState.expandedCategories[cIdx];
+            const showSubInput = !!uiState.subInputVisible[cIdx];
+
             const card = document.createElement('div');
             card.className = 'category-card';
 
-            // ヘッダー部分 (牛乳 / +Item ボタン)
-            const header = document.createElement('div');
-            header.className = 'category-card-header';
-            header.innerHTML = `
-                <span class="category-name-title">${escapeHtml(category.name)}</span>
-                <button class="btn-add-sub-trigger" onclick="showSubInput(${cIdx})">+ Item</button>
-            `;
-            card.appendChild(header);
+            const itemCount = category.items.length;
+            const itemLabel = itemCount === 0 ? '項目なし' : `${itemCount}項目`;
 
-            // 小カテゴリー追加用入力（隠し入力エリア。+Itemを押すと動的に表示されます）
-            const inputRow = document.createElement('div');
-            inputRow.className = 'sub-input-row';
-            inputRow.id = `subInputRow-${cIdx}`;
-            inputRow.style.display = 'none'; // 初期状態は非表示
-            inputRow.innerHTML = `
-                <input type="text" id="subInputText-${cIdx}" placeholder="無脂肪牛乳 など...">
-                <button class="btn-sub-save" onclick="saveSubItem(${cIdx})">追加</button>
-            `;
-            card.appendChild(inputRow);
-
-            // 小カテゴリーリスト (スクショ通りの線引き構造)
-            const subList = document.createElement('div');
-            subList.className = 'sub-items-list';
-
-            category.items.forEach((item, iIdx) => {
-                const itemRow = document.createElement('div');
-                itemRow.className = 'sub-item-row';
-
-                // 毎週の場合の曜日オプション（1=月曜、...、0=日曜）
-                const weeklyOptions = `
-                    <select class="reminder-sub-select" style="display: ${item.reminderType === 'weekly' ? 'inline-block' : 'none'};" onchange="setReminderValue(${cIdx}, ${iIdx}, this.value)">
-                        <option value="1" ${item.reminderValue == '1' ? 'selected' : ''}>毎週月曜</option>
-                        <option value="2" ${item.reminderValue == '2' ? 'selected' : ''}>毎週火曜</option>
-                        <option value="3" ${item.reminderValue == '3' ? 'selected' : ''}>毎週水曜</option>
-                        <option value="4" ${item.reminderValue == '4' ? 'selected' : ''}>毎週木曜</option>
-                        <option value="5" ${item.reminderValue == '5' ? 'selected' : ''}>毎週金曜</option>
-                        <option value="6" ${item.reminderValue == '6' ? 'selected' : ''}>毎週土曜</option>
-                        <option value="0" ${item.reminderValue == '0' ? 'selected' : ''}>毎週日曜</option>
-                    </select>
-                `;
-
-                // 毎月の場合の日付オプション（1日〜31日）
-                let monthlyDays = '';
-                for (let d = 1; d <= 31; d++) {
-                    monthlyDays += `<option value="${d}" ${item.reminderValue == d ? 'selected' : ''}>毎月${d}日</option>`;
-                }
-                const monthlyOptions = `
-                    <select class="reminder-sub-select" style="display: ${item.reminderType === 'monthly' ? 'inline-block' : 'none'};" onchange="setReminderValue(${cIdx}, ${iIdx}, this.value)">
-                        ${monthlyDays}
-                    </select>
-                `;
-
-                itemRow.innerHTML = `
-                    <div class="sub-item-main">
-                        <span class="sub-item-label">${escapeHtml(item.name)}</span>
-                        <div class="item-controls">
-                            <!-- プラスマイナスカウンター -->
-                            <div class="counter-group">
-                                <button class="btn-circle" onclick="changeCount(${cIdx}, ${iIdx}, -1)">−</button>
-                                <span class="count-num">${item.count}</span>
-                                <button class="btn-circle" onclick="changeCount(${cIdx}, ${iIdx}, 1)">+</button>
-                            </div>
-                            <!-- 削除 -->
-                            <button class="btn-item-delete" onclick="deleteSubItem(${cIdx}, ${iIdx})">✕</button>
-                        </div>
+            card.innerHTML = `
+                <div class="category-header">
+                    <div class="category-left" onclick="toggleCategory(${cIdx})">
+                        <div class="category-name-title">${escapeHtml(category.name)}</div>
+                        <div class="category-meta">${itemLabel}</div>
                     </div>
-                    <!-- メモ記入スペース＆詳細リマインダー設定 -->
-                    <div class="sub-item-sub-container">
-                        <input type="text" class="sub-item-memo-input" 
-                               placeholder="タップしてメモ（ブランド名、補足など）を記入..." 
-                               value="${escapeHtml(item.memo || '')}" 
-                               onchange="saveMemo(${cIdx}, ${iIdx}, this.value)">
-                               
-                        <div class="reminder-group">
-                            <span class="reminder-icon">🔔</span>
-                            <select class="reminder-select" onchange="setReminderType(${cIdx}, ${iIdx}, this.value)">
-                                <option value="">通知なし</option>
-                                <option value="daily" ${item.reminderType === 'daily' ? 'selected' : ''}>毎日通知</option>
-                                <option value="weekly" ${item.reminderType === 'weekly' ? 'selected' : ''}>毎週指定の曜日</option>
-                                <option value="monthly" ${item.reminderType === 'monthly' ? 'selected' : ''}>毎月指定の日</option>
-                            </select>
-                            
-                            ${weeklyOptions}
-                            ${monthlyOptions}
-                            
-                            <input type="time" class="reminder-time-input" 
-                                   style="display: ${item.reminderType && item.reminderType !== '' ? 'inline-block' : 'none'};" 
-                                   value="${item.reminderTime || '12:00'}" 
-                                   onchange="setReminderTime(${cIdx}, ${iIdx}, this.value)">
-                        </div>
+                    <div class="category-actions">
+                        <button class="btn-small btn-add-sub-trigger" onclick="showSubInput(${cIdx}, event)">＋項目</button>
+                        <button class="btn-small btn-toggle" onclick="toggleCategory(${cIdx}, event)">${expanded ? '▴' : '▾'}</button>
                     </div>
-                `;
-                subList.appendChild(itemRow);
-            });
-
-            card.appendChild(subList);
-
-            // 大カテゴリー削除ボタン
-            const deleteCardBtn = document.createElement('button');
-            deleteCardBtn.className = 'btn-card-delete';
-            deleteCardBtn.textContent = '大カテゴリーを削除';
-            deleteCardBtn.onclick = () => deleteMainCategory(cIdx);
-            card.appendChild(deleteCardBtn);
+                </div>
+                ${expanded ? renderCategoryBody(category, cIdx, showSubInput) : ''}
+            `;
 
             container.appendChild(card);
         });
     }
 
-    // 大カテゴリー（牛乳など）の追加
+    function renderCategoryBody(category, cIdx, showSubInput) {
+        let itemsHtml = '';
+
+        category.items.forEach((item, iIdx) => {
+            itemsHtml += `
+                <div class="sub-item-row">
+                    <div class="sub-item-top">
+                        <span class="sub-item-label">${escapeHtml(item.name)}</span>
+                        <div class="item-controls">
+                            <div class="counter-group">
+                                <button class="btn-circle" onclick="changeCount(${cIdx}, ${iIdx}, -1)">−</button>
+                                <span class="count-num">${item.count}</span>
+                                <button class="btn-circle" onclick="changeCount(${cIdx}, ${iIdx}, 1)">＋</button>
+                            </div>
+                            <button class="btn-item-delete" onclick="deleteSubItem(${cIdx}, ${iIdx})">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="sub-item-bottom">
+                        <div class="sub-item-actions">
+                            <button class="memo-btn ${item.memo ? 'has-note' : ''}" onclick="openMemoModal(${cIdx}, ${iIdx})">
+                                メモ
+                            </button>
+                        </div>
+
+                        <div class="reminder-group">
+                            <span class="reminder-icon">🔔</span>
+                            ${renderReminderControls(cIdx, iIdx, item)}
+                        </div>
+
+                        ${renderReminderStatus(item)}
+                    </div>
+                </div>
+            `;
+        });
+
+        return `
+            <div class="category-body">
+                ${showSubInput ? `
+                    <div class="sub-input-row">
+                        <input
+                            type="text"
+                            id="subInputText-${cIdx}"
+                            placeholder="新しい項目を追加"
+                            onkeydown="if(event.key==='Enter'){ saveSubItem(${cIdx}); }"
+                        >
+                        <button class="btn-sub-save" onclick="saveSubItem(${cIdx})">追加</button>
+                    </div>
+                ` : ''}
+
+                <div class="sub-items-list">
+                    ${itemsHtml || `<div class="empty-state" style="padding:18px 10px;">まだ項目がありません。</div>`}
+                </div>
+
+                <button class="btn-card-delete" onclick="deleteMainCategory(${cIdx})">大カテゴリーを削除</button>
+            </div>
+        `;
+    }
+
+    function renderReminderControls(cIdx, iIdx, item) {
+        const type = item.reminderType || '';
+        let html = `
+            <select class="reminder-select" onchange="setReminderType(${cIdx}, ${iIdx}, this.value)">
+                <option value="" ${type === '' ? 'selected' : ''}>通知なし</option>
+                <option value="daily" ${type === 'daily' ? 'selected' : ''}>毎日</option>
+                <option value="weekly" ${type === 'weekly' ? 'selected' : ''}>毎週</option>
+                <option value="monthly" ${type === 'monthly' ? 'selected' : ''}>毎月</option>
+                <option value="once" ${type === 'once' ? 'selected' : ''}>単発</option>
+            </select>
+        `;
+
+        if (type === 'weekly') {
+            html += `
+                <select class="reminder-sub-select" onchange="setReminderValue(${cIdx}, ${iIdx}, this.value)">
+                    <option value="1" ${item.reminderValue == '1' ? 'selected' : ''}>月</option>
+                    <option value="2" ${item.reminderValue == '2' ? 'selected' : ''}>火</option>
+                    <option value="3" ${item.reminderValue == '3' ? 'selected' : ''}>水</option>
+                    <option value="4" ${item.reminderValue == '4' ? 'selected' : ''}>木</option>
+                    <option value="5" ${item.reminderValue == '5' ? 'selected' : ''}>金</option>
+                    <option value="6" ${item.reminderValue == '6' ? 'selected' : ''}>土</option>
+                    <option value="0" ${item.reminderValue == '0' ? 'selected' : ''}>日</option>
+                </select>
+            `;
+        }
+
+        if (type === 'monthly') {
+            let days = '';
+            for (let d = 1; d <= 31; d++) {
+                days += `<option value="${d}" ${String(item.reminderValue) === String(d) ? 'selected' : ''}>${d}日</option>`;
+            }
+            html += `
+                <select class="reminder-sub-select" onchange="setReminderValue(${cIdx}, ${iIdx}, this.value)">
+                    ${days}
+                </select>
+            `;
+        }
+
+        if (type === 'daily' || type === 'weekly' || type === 'monthly') {
+            html += `
+                <input
+                    type="time"
+                    class="reminder-time-input"
+                    value="${escapeHtml(item.reminderTime || '12:00')}"
+                    onchange="setReminderTime(${cIdx}, ${iIdx}, this.value)"
+                >
+            `;
+        }
+
+        if (type === 'once') {
+            html += `
+                <input
+                    type="datetime-local"
+                    class="reminder-datetime-input"
+                    value="${escapeHtml(item.reminderOnceAt || '')}"
+                    onchange="setReminderOnceAt(${cIdx}, ${iIdx}, this.value)"
+                >
+            `;
+        }
+
+        return html;
+    }
+
+    function renderReminderStatus(item) {
+        if (item.reminderType !== 'once' || !item.reminderOnceAt) {
+            return '';
+        }
+
+        const scheduled = formatDateTimeDisplay(item.reminderOnceAt);
+
+        if (item.onceNotifiedAt) {
+            return `
+                <div class="reminder-status">
+                    <span class="notified">通知済み</span>
+                    ${escapeHtml(scheduled)}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="reminder-status">
+                予定: ${escapeHtml(scheduled)}
+            </div>
+        `;
+    }
+
     function addMainCategory() {
         const input = document.getElementById('newCategoryInput');
         const name = input.value.trim();
         if (!name) return;
 
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories.push({
-                name: name,
-                items: []
-            });
-            input.value = '';
-            saveAllToStorage();
-            renderDetail();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories.push({
+            name: name,
+            items: []
+        });
+
+        input.value = '';
+        touchActiveList();
+        saveAllToStorage();
+
+        const newIndex = list.categories.length - 1;
+        uiState.expandedCategories[newIndex] = true;
+        uiState.subInputVisible[newIndex] = false;
+
+        renderDetail();
     }
 
-    // 大カテゴリー（牛乳など）の削除
     function deleteMainCategory(cIdx) {
-        if (confirm("この大カテゴリーと中身のアイテムをすべて削除しますか？")) {
-            const list = appState.lists.find(l => l.id === activeListId);
-            if (list) {
-                list.categories.splice(cIdx, 1);
-                saveAllToStorage();
-                renderDetail();
-            }
+        if (!confirm('この大カテゴリーを削除しますか？中の項目も削除されます。')) return;
+
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories.splice(cIdx, 1);
+        touchActiveList();
+        saveAllToStorage();
+
+        uiState.expandedCategories = {};
+        uiState.subInputVisible = {};
+        renderDetail();
+    }
+
+    function toggleCategory(cIdx, event) {
+        if (event) event.stopPropagation();
+        uiState.expandedCategories[cIdx] = !uiState.expandedCategories[cIdx];
+        renderDetail();
+    }
+
+    function showSubInput(cIdx, event) {
+        if (event) event.stopPropagation();
+        uiState.expandedCategories[cIdx] = true;
+        uiState.subInputVisible[cIdx] = !uiState.subInputVisible[cIdx];
+        renderDetail();
+
+        if (uiState.subInputVisible[cIdx]) {
+            setTimeout(() => {
+                const input = document.getElementById(`subInputText-${cIdx}`);
+                if (input) input.focus();
+            }, 30);
         }
     }
 
-    // 小カテゴリーの入力欄を表示
-    function showSubInput(cIdx) {
-        const row = document.getElementById(`subInputRow-${cIdx}`);
-        row.style.display = row.style.display === 'none' ? 'flex' : 'none';
-        if(row.style.display === 'flex') {
-            document.getElementById(`subInputText-${cIdx}`).focus();
-        }
-    }
-
-    // 小カテゴリーの保存
     function saveSubItem(cIdx) {
         const input = document.getElementById(`subInputText-${cIdx}`);
+        if (!input) return;
+
         const name = input.value.trim();
         if (!name) return;
 
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories[cIdx].items.push({
-                name: name,
-                count: 1,
-                reminder: "",
-                memo: "" // 空のメモを用意
-            });
-            saveAllToStorage();
-            renderDetail();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories[cIdx].items.push({
+            name: name,
+            count: 1,
+            memo: '',
+            reminder: '',
+            reminderType: '',
+            reminderValue: '',
+            reminderTime: '',
+            reminderOnceAt: '',
+            onceNotifiedAt: '',
+            lastNotifiedMinute: ''
+        });
+
+        touchActiveList();
+        saveAllToStorage();
+
+        uiState.subInputVisible[cIdx] = false;
+        uiState.expandedCategories[cIdx] = true;
+
+        renderDetail();
     }
 
-    // 小カテゴリーの削除
     function deleteSubItem(cIdx, iIdx) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories[cIdx].items.splice(iIdx, 1);
-            saveAllToStorage();
-            renderDetail();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories[cIdx].items.splice(iIdx, 1);
+        touchActiveList();
+        saveAllToStorage();
+        renderDetail();
     }
 
-    // 個数カウンターの加減算
     function changeCount(cIdx, iIdx, change) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            const item = list.categories[cIdx].items[iIdx];
-            item.count += change;
-            if (item.count < 1) item.count = 1; // 1未満にはさせない
-            saveAllToStorage();
-            renderDetail();
+        const list = getActiveList();
+        if (!list) return;
+
+        const item = list.categories[cIdx].items[iIdx];
+        item.count = Math.max(1, (item.count || 1) + change);
+
+        touchActiveList();
+        saveAllToStorage();
+        renderDetail();
+    }
+
+    function openMemoModal(cIdx, iIdx) {
+        const list = getActiveList();
+        if (!list) return;
+
+        const category = list.categories[cIdx];
+        const item = category.items[iIdx];
+        if (!item) return;
+
+        uiState.memoTarget = { cIdx, iIdx };
+
+        document.getElementById('memoModalSubtitle').textContent = `${list.title} / ${category.name} / ${item.name}`;
+        document.getElementById('memoTextarea').value = item.memo || '';
+        document.getElementById('memoModal').classList.add('active');
+
+        setTimeout(() => {
+            document.getElementById('memoTextarea').focus();
+        }, 30);
+    }
+
+    function saveMemoFromModal() {
+        if (!uiState.memoTarget) return;
+
+        const list = getActiveList();
+        if (!list) return;
+
+        const { cIdx, iIdx } = uiState.memoTarget;
+        const item = list.categories[cIdx]?.items[iIdx];
+        if (!item) return;
+
+        item.memo = document.getElementById('memoTextarea').value.trim();
+        touchActiveList();
+        saveAllToStorage();
+        closeMemoModal();
+        renderDetail();
+    }
+
+    function closeMemoModal() {
+        document.getElementById('memoModal').classList.remove('active');
+        uiState.memoTarget = null;
+    }
+
+    function handleModalOverlayClick(event) {
+        if (event.target.id === 'memoModal') {
+            closeMemoModal();
         }
     }
 
-    // リマインダーの種類を変更（毎日 / 毎週 / 毎月）
     function setReminderType(cIdx, iIdx, typeValue) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            const item = list.categories[cIdx].items[iIdx];
-            item.reminderType = typeValue;
-            if (typeValue === 'weekly') {
-                item.reminderValue = "1"; // デフォルト: 月曜日
-            } else if (typeValue === 'monthly') {
-                item.reminderValue = "1"; // デフォルト: 1日
-            } else {
-                item.reminderValue = "";
-            }
-            if (!item.reminderTime) {
-                item.reminderTime = "12:00"; // デフォルト時間
-            }
-            saveAllToStorage();
-            renderDetail();
+        const list = getActiveList();
+        if (!list) return;
+
+        const item = list.categories[cIdx].items[iIdx];
+        item.reminderType = typeValue;
+
+        if (typeValue === 'daily') {
+            item.reminderValue = '';
+            item.reminderTime = item.reminderTime || '12:00';
+            item.reminderOnceAt = '';
+            item.onceNotifiedAt = '';
+        } else if (typeValue === 'weekly') {
+            item.reminderValue = item.reminderValue || '1';
+            item.reminderTime = item.reminderTime || '12:00';
+            item.reminderOnceAt = '';
+            item.onceNotifiedAt = '';
+        } else if (typeValue === 'monthly') {
+            item.reminderValue = item.reminderValue || '1';
+            item.reminderTime = item.reminderTime || '12:00';
+            item.reminderOnceAt = '';
+            item.onceNotifiedAt = '';
+        } else if (typeValue === 'once') {
+            item.reminderValue = '';
+            item.reminderTime = '';
+            item.reminderOnceAt = item.reminderOnceAt || getSuggestedOnceDateTime();
+            item.onceNotifiedAt = '';
+            item.lastNotifiedMinute = '';
+        } else {
+            item.reminderValue = '';
+            item.reminderTime = '';
+            item.reminderOnceAt = '';
+            item.onceNotifiedAt = '';
+            item.lastNotifiedMinute = '';
         }
+
+        touchActiveList();
+        saveAllToStorage();
+        renderDetail();
     }
 
-    // 毎週の曜日、または毎月の日程を更新
     function setReminderValue(cIdx, iIdx, value) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories[cIdx].items[iIdx].reminderValue = value;
-            saveAllToStorage();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories[cIdx].items[iIdx].reminderValue = value;
+        touchActiveList();
+        saveAllToStorage();
     }
 
-    // リマインド時刻設定を更新
     function setReminderTime(cIdx, iIdx, timeValue) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories[cIdx].items[iIdx].reminderTime = timeValue;
-            saveAllToStorage();
-        }
+        const list = getActiveList();
+        if (!list) return;
+
+        list.categories[cIdx].items[iIdx].reminderTime = timeValue;
+        list.categories[cIdx].items[iIdx].lastNotifiedMinute = '';
+        touchActiveList();
+        saveAllToStorage();
     }
 
-    // メモの保存処理（ご要望分）
-    function saveMemo(cIdx, iIdx, memoValue) {
-        const list = appState.lists.find(l => l.id === activeListId);
-        if (list) {
-            list.categories[cIdx].items[iIdx].memo = memoValue.trim();
-            saveAllToStorage();
-        }
+    function setReminderOnceAt(cIdx, iIdx, dateTimeValue) {
+        const list = getActiveList();
+        if (!list) return;
+
+        const item = list.categories[cIdx].items[iIdx];
+        item.reminderOnceAt = dateTimeValue;
+        item.onceNotifiedAt = '';
+        item.lastNotifiedMinute = '';
+        touchActiveList();
+        saveAllToStorage();
+        renderDetail();
     }
 
-    // --- 3. 通知機能・バックグラウンド監視 ---
     function updateNotificationBanner() {
         const banner = document.getElementById('notifBanner');
-        if (!("Notification" in window)) {
-            banner.textContent = "⚠️ この端末は自動通知機能に対応していません";
-            banner.style.backgroundColor = "#ffebee";
-            banner.style.color = "#c62828";
-            banner.style.borderColor = "#ef9a9a";
+
+        if (!('Notification' in window)) {
+            banner.textContent = '⚠️ この端末・ブラウザでは通知に対応していません';
+            banner.style.backgroundColor = '#ffefef';
+            banner.style.borderColor = '#ffcdcd';
+            banner.style.color = '#b42318';
             return;
         }
-        
-        if (Notification.permission === "granted") {
-            banner.style.display = "none"; // 許可されていれば表示を消す
+
+        if (Notification.permission === 'granted') {
+            banner.style.display = 'none';
+            return;
         }
+
+        if (Notification.permission === 'denied') {
+            banner.style.display = 'block';
+            banner.textContent = '⚠️ 通知がブロックされています。必要ならブラウザ設定から許可してください';
+            banner.style.backgroundColor = '#fff7ed';
+            banner.style.borderColor = '#fed7aa';
+            banner.style.color = '#9a3412';
+            return;
+        }
+
+        banner.style.display = 'block';
+        banner.textContent = '🔔 通知を許可すると、リマインダーを受け取れます';
+        banner.style.backgroundColor = '#eef3ff';
+        banner.style.borderColor = '#cfd8ff';
+        banner.style.color = '#3743b5';
     }
 
     function requestNotificationPermission() {
-        if (!("Notification" in window)) {
-            alert("このブラウザ・端末は通知に対応していません。\niPhoneの場合は『ホーム画面に追加』してから起動すると通知が使えるようになります。");
+        if (!('Notification' in window)) {
+            alert('このブラウザ・端末では通知に対応していません。');
             return;
         }
 
         Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                alert("通知設定がONになりました！指定時刻にリマインダーが届きます。");
-                updateNotificationBanner();
-            } else {
-                alert("通知設定が許可されませんでした。設定アプリから通知をオンにするか、本アプリで画面を開いたままお使いください。");
+            if (permission === 'granted') {
+                alert('通知を許可しました。');
+            } else if (permission === 'denied') {
+                alert('通知は許可されませんでした。必要ならブラウザ設定から変更してください。');
             }
+            updateNotificationBanner();
         });
     }
 
-    // 毎分、設定されたリマインド時間と現在時刻を照合
     function startReminderMonitor() {
         setInterval(() => {
             const now = new Date();
-            const currentHM = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            const currentDay = now.getDate(); // 1〜31
-            const currentDayOfWeek = now.getDay(); // 0(日)〜6(土)
+            const currentHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const currentDay = now.getDate();
+            const currentDayOfWeek = now.getDay();
             const currentMinuteKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${currentHM}`;
+
+            let changed = false;
 
             appState.lists.forEach(list => {
                 list.categories.forEach(category => {
                     category.items.forEach(item => {
-                        // 過去のreminderプロパティ(単一時刻)が残っている場合は、自動的に「毎日通知」にマイグレーションする
-                        if (item.reminder && item.reminder !== "" && !item.reminderType) {
+                        // 旧データ移行
+                        if (item.reminder && item.reminder !== '' && !item.reminderType) {
                             item.reminderTime = item.reminder;
                             item.reminderType = 'daily';
-                            item.reminder = "";
+                            item.reminder = '';
+                            changed = true;
                         }
 
-                        if (!item.reminderType || item.reminderType === "") return;
-                        if (item.reminderTime !== currentHM) return;
-                        if (item.lastNotifiedMinute === currentMinuteKey) return; // 1分間に何回も実行されるのを防止
+                        if (!item.reminderType) return;
+
+                        // 単発通知
+                        if (item.reminderType === 'once') {
+                            if (!item.reminderOnceAt || item.onceNotifiedAt) return;
+
+                            const scheduled = new Date(item.reminderOnceAt);
+                            if (isNaN(scheduled.getTime())) return;
+
+                            if (now >= scheduled) {
+                                triggerNotification(list.title, category.name, item.name, item.count);
+                                item.onceNotifiedAt = now.toISOString();
+                                changed = true;
+                            }
+                            return;
+                        }
+
+                        // 毎日 / 毎週 / 毎月
+                        if (!item.reminderTime || item.reminderTime !== currentHM) return;
+                        if (item.lastNotifiedMinute === currentMinuteKey) return;
 
                         let shouldNotify = false;
 
                         if (item.reminderType === 'daily') {
                             shouldNotify = true;
                         } else if (item.reminderType === 'weekly') {
-                            if (String(item.reminderValue) === String(currentDayOfWeek)) {
-                                shouldNotify = true;
-                            }
+                            shouldNotify = String(item.reminderValue) === String(currentDayOfWeek);
                         } else if (item.reminderType === 'monthly') {
-                            if (String(item.reminderValue) === String(currentDay)) {
-                                shouldNotify = true;
-                            }
+                            shouldNotify = String(item.reminderValue) === String(currentDay);
                         }
 
                         if (shouldNotify) {
-                            // 通知の送信
                             triggerNotification(list.title, category.name, item.name, item.count);
-                            // 同一分内での多重通知を防止するために時間を記録
                             item.lastNotifiedMinute = currentMinuteKey;
+                            changed = true;
                         }
                     });
                 });
             });
-            saveAllToStorage();
-        }, 15000); // 15秒おきにチェック
+
+            if (changed) {
+                saveAllToStorage();
+                if (document.getElementById('detailView').classList.contains('active')) {
+                    renderDetail();
+                }
+            }
+        }, 15000);
     }
 
-    // 実際のポップアップ通知とフォールバックアラート
     function triggerNotification(listTitle, categoryName, itemName, count) {
-        const titleText = `お買い物リマインダー`;
-        const bodyText = `【${listTitle}】\n「${categoryName}」の「${itemName}」を ${count} 個買う時間です！`;
+        const titleText = 'ListNote リマインダー';
+        const bodyText = `【${listTitle || '無題のリスト'}】${categoryName} / ${itemName}（数量: ${count}）`;
 
-        if (Notification.permission === "granted") {
+        if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(titleText, {
                 body: bodyText,
-                icon: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🛒</text></svg>"
+                icon: 'icon-192.png'
             });
         } else {
-            // 通知が許可されていない、あるいはバックグラウンド未対応時のバックアップ
-            alert(`⏰ リマインダー:\n${bodyText}`);
+            alert(`⏰ ${titleText}\n${bodyText}`);
         }
     }
 
-    // 安全対策：HTMLインジェクション防止用のクレンジング
+    function getSuggestedOnceDateTime() {
+        const d = new Date();
+        d.setMinutes(0, 0, 0);
+        d.setHours(d.getHours() + 1);
+        return formatDateTimeLocalValue(d);
+    }
+
+    function formatDateTimeLocalValue(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        const h = String(dateObj.getHours()).padStart(2, '0');
+        const min = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${d}T${h}:${min}`;
+    }
+
+    function formatDateTimeDisplay(value) {
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return value;
+        return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
     function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/&/g, "&amp;")
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;")
-                  .replace(/"/g, "&quot;")
-                  .replace(/'/g, "&#039;");
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 </script>
 </body>
