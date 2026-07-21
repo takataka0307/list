@@ -3385,7 +3385,55 @@
     }
 
 </script>
+<script>
 
+(async function () {
+
+  try {
+
+    if ('serviceWorker' in navigator) {
+
+      const regs = await navigator.serviceWorker.getRegistrations();
+
+      for (const reg of regs) {
+
+        await reg.unregister();
+
+      }
+
+    }
+
+ 
+
+    if ('caches' in window) {
+
+      const keys = await caches.keys();
+
+      for (const key of keys) {
+
+        if (/listnote|listnote-v/i.test(key)) {
+
+          await caches.delete(key);
+
+        }
+
+      }
+
+    }
+
+ 
+
+    console.log('ListNote: old service worker / cache cleared');
+
+  } catch (e) {
+
+    console.log('ListNote: cache clear skipped', e);
+
+  }
+
+})();
+
+</script>
 </body>
 
 </html>
