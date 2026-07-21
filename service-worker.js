@@ -1,32 +1,4 @@
-const CACHE_NAME = 'listnote-v1';
-
-const URLS_TO_CACHE = [
-
-  './',
-
-  './index.html',
-
-  './manifest.webmanifest',
-
-  './icon.svg',
-
-  './icon-180.png',
-
-  './icon-192.png',
-
-  './icon-512.png'
-
-];
-
- 
-
-self.addEventListener('install', (event) => {
-
-  event.waitUntil(
-
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE))
-
-  );
+self.addEventListener('install', () => {
 
   self.skipWaiting();
 
@@ -36,48 +8,22 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
 
-  event.waitUntil(
+  event.waitUntil((async () => {
 
-    caches.keys().then((keys) =>
+    const keys = await caches.keys();
 
-      Promise.all(
+    for (const key of keys) {
 
-        keys.map((key) => {
+      if (/listnote|listnote-v/i.test(key)) {
 
-          if (key !== CACHE_NAME) {
+        await caches.delete(key);
 
-            return caches.delete(key);
+      }
 
-          }
+    }
 
-        })
+    await self.registration.unregister();
 
-      )
-
-    )
-
-  );
-
-  self.clients.claim();
-
-});
-
- 
-
-self.addEventListener('fetch', (event) => {
-
-  if (event.request.method !== 'GET') return;
-
- 
-
-  event.respondWith(
-
-    caches.match(event.request).then((cached) => {
-
-      return cached || fetch(event.request);
-
-    })
-
-  );
+  })());
 
 });
