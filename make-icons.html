@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-  <title>ListNote PNGアイコン生成</title>
+  <title>ListNote アイコン生成</title>
 
   <style>
 
@@ -34,9 +34,21 @@
 
     }
 
-    h1 { margin: 0 0 10px; font-size: 28px; }
+    h1 {
 
-    p { line-height: 1.7; color: #4b5563; }
+      margin: 0 0 10px;
+
+      font-size: 28px;
+
+    }
+
+    p {
+
+      line-height: 1.7;
+
+      color: #4b5563;
+
+    }
 
     .card {
 
@@ -47,42 +59,6 @@
       padding: 18px;
 
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-
-      margin-top: 16px;
-
-    }
-
-    textarea {
-
-      width: 100%;
-
-      min-height: 320px;
-
-      resize: vertical;
-
-      border: 1px solid #d1d5db;
-
-      border-radius: 12px;
-
-      padding: 12px;
-
-      font-family: monospace;
-
-      font-size: 13px;
-
-      line-height: 1.5;
-
-      box-sizing: border-box;
-
-    }
-
-    .buttons {
-
-      display: flex;
-
-      flex-wrap: wrap;
-
-      gap: 10px;
 
       margin-top: 16px;
 
@@ -106,49 +82,9 @@
 
       font-weight: 700;
 
-    }
+      margin-right: 8px;
 
-    .preview {
-
-      display: flex;
-
-      gap: 16px;
-
-      flex-wrap: wrap;
-
-      align-items: center;
-
-      margin-top: 16px;
-
-    }
-
-    .preview-box {
-
-      background: #fff;
-
-      border: 1px solid #e5e7eb;
-
-      border-radius: 16px;
-
-      padding: 14px;
-
-      text-align: center;
-
-      min-width: 140px;
-
-    }
-
-    .preview-box img {
-
-      width: 96px;
-
-      height: 96px;
-
-      display: block;
-
-      margin: 0 auto 10px;
-
-      border-radius: 22px;
+      margin-bottom: 8px;
 
     }
 
@@ -164,6 +100,112 @@
 
     }
 
+    .grid {
+
+      display: grid;
+
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+      gap: 16px;
+
+      margin-top: 16px;
+
+    }
+
+    .item {
+
+      border: 1px solid #e5e7eb;
+
+      border-radius: 16px;
+
+      padding: 16px;
+
+      text-align: center;
+
+      background: #fff;
+
+    }
+
+    .item img {
+
+      width: 120px;
+
+      height: 120px;
+
+      border-radius: 24px;
+
+      display: block;
+
+      margin: 0 auto 12px;
+
+      background: #f3f4f6;
+
+    }
+
+    .filename {
+
+      font-weight: 700;
+
+      margin-bottom: 8px;
+
+    }
+
+    .help {
+
+      font-size: 13px;
+
+      color: #6b7280;
+
+      line-height: 1.6;
+
+    }
+
+    a.save-link {
+
+      display: inline-block;
+
+      margin-top: 10px;
+
+      padding: 10px 14px;
+
+      border-radius: 10px;
+
+      background: #10b981;
+
+      color: white;
+
+      text-decoration: none;
+
+      font-weight: 700;
+
+    }
+
+    textarea {
+
+      width: 100%;
+
+      min-height: 240px;
+
+      resize: vertical;
+
+      border: 1px solid #d1d5db;
+
+      border-radius: 12px;
+
+      padding: 12px;
+
+      font-family: monospace;
+
+      font-size: 12px;
+
+      line-height: 1.5;
+
+      box-sizing: border-box;
+
+      margin-top: 14px;
+
+    }
+
   </style>
 
 </head>
@@ -172,13 +214,25 @@
 
   <div class="wrap">
 
-    <h1>ListNote PNGアイコン生成</h1>
+    <h1>ListNote アイコン生成</h1>
 
-    <p>このページは PNGアイコンを作るための道具です。</p>
+    <p>
+
+      このページは <strong>アイコンPNGを作るためのページ</strong> です。<br>
+
+      うまく自動ダウンロードできない端末では、表示された画像を <strong>長押し保存</strong> してください。
+
+    </p>
 
  
 
     <div class="card">
+
+      <button onclick="generateIcons()">アイコンを生成する</button>
+
+      <div class="msg" id="message">まだ生成していません。</div>
+
+ 
 
       <textarea id="svgInput"><svg xmlns=http://www.w3.org/2000/svg viewBox="0 0 512 512">
 
@@ -238,33 +292,7 @@
 
  
 
-      <div class="buttons">
-
-        <button onclick="downloadPng(180)">icon-180.png を作る</button>
-
-        <button onclick="downloadPng(192)">icon-192.png を作る</button>
-
-        <button onclick="downloadPng(512)">icon-512.png を作る</button>
-
-      </div>
-
- 
-
-      <div class="msg" id="message"></div>
-
- 
-
-      <div class="preview">
-
-        <div class="preview-box">
-
-          <img id="previewImg" alt="preview">
-
-          <div>プレビュー</div>
-
-        </div>
-
-      </div>
+      <div class="grid" id="iconsGrid"></div>
 
     </div>
 
@@ -274,25 +302,7 @@
 
   <script>
 
-    function updatePreview() {
-
-      const svgText = document.getElementById('svgInput').value.trim();
-
-      const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-
-      const url = URL.createObjectURL(blob);
-
-      const img = document.getElementById('previewImg');
-
-      img.onload = () => URL.revokeObjectURL(url);
-
-      img.src = url;
-
-    }
-
- 
-
-    function downloadPng(size) {
+    function makeDataUrl(size, callback) {
 
       const svgText = document.getElementById('svgInput').value.trim();
 
@@ -320,37 +330,21 @@
 
  
 
-        canvas.toBlob(function (pngBlob) {
+        const dataUrl = canvas.toDataURL('image/png');
 
-          const pngUrl = URL.createObjectURL(pngBlob);
+        URL.revokeObjectURL(url);
 
-          const a = document.createElement('a');
-
-          a.href = pngUrl;
-
-          a.download = `icon-${size}.png`;
-
-          document.body.appendChild(a);
-
-          a.click();
-
-          a.remove();
-
-          document.getElementById('message').textContent = `icon-${size}.png を保存しました。`;
-
-          setTimeout(() => {
-
-            URL.revokeObjectURL(url);
-
-            URL.revokeObjectURL(pngUrl);
-
-          }, 1000);
-
-        }, 'image/png');
+        callback(dataUrl);
 
       };
 
- 
+      img.onerror = function () {
+
+        document.getElementById('message').textContent = 'SVGの読み込みに失敗しました。';
+
+        URL.revokeObjectURL(url);
+
+      };
 
       img.src = url;
 
@@ -358,7 +352,81 @@
 
  
 
-    updatePreview();
+    function createIconCard(size, dataUrl) {
+
+      const grid = document.getElementById('iconsGrid');
+
+      const div = document.createElement('div');
+
+      div.className = 'item';
+
+ 
+
+      div.innerHTML = `
+
+        <div class="filename">icon-${size}.png</div>
+
+        <img src="${dataUrl}" alt="icon-${size}">
+
+        <div class="help">
+
+          PCなら「画像を新しいタブで開く」→保存。<br>
+
+          iPhoneなら画像を長押しして「写真に保存」または「ファイルに保存」してください。
+
+        </div>
+
+        <a class="save-link" href="${dataUrl}" download="icon-${size}.png" target="_blank">保存用に開く</a>
+
+      `;
+
+ 
+
+      grid.appendChild(div);
+
+    }
+
+ 
+
+    function generateIcons() {
+
+      document.getElementById('iconsGrid').innerHTML = '';
+
+      document.getElementById('message').textContent = '生成中...';
+
+ 
+
+      const sizes = [180, 192, 512];
+
+      let done = 0;
+
+ 
+
+      sizes.forEach(size => {
+
+        makeDataUrl(size, function(dataUrl) {
+
+          createIconCard(size, dataUrl);
+
+          done++;
+
+          if (done === sizes.length) {
+
+            document.getElementById('message').textContent =
+
+              '生成できました。保存用に開くを押すか、画像を長押しして保存してください。';
+
+          }
+
+        });
+
+      });
+
+    }
+
+ 
+
+    generateIcons();
 
   </script>
 
