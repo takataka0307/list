@@ -180,32 +180,6 @@
 
     }
 
-    textarea {
-
-      width: 100%;
-
-      min-height: 240px;
-
-      resize: vertical;
-
-      border: 1px solid #d1d5db;
-
-      border-radius: 12px;
-
-      padding: 12px;
-
-      font-family: monospace;
-
-      font-size: 12px;
-
-      line-height: 1.5;
-
-      box-sizing: border-box;
-
-      margin-top: 14px;
-
-    }
-
   </style>
 
 </head>
@@ -218,9 +192,9 @@
 
     <p>
 
-      このページは <strong>アイコンPNGを作るためのページ</strong> です。<br>
+      これは <strong>PNGアイコンを作る専用ページ</strong> です。<br>
 
-      うまく自動ダウンロードできない端末では、表示された画像を <strong>長押し保存</strong> してください。
+      画像が表示されたら、PCなら保存、iPhoneなら長押し保存してください。
 
     </p>
 
@@ -232,66 +206,6 @@
 
       <div class="msg" id="message">まだ生成していません。</div>
 
- 
-
-      <textarea id="svgInput"><svg xmlns=http://www.w3.org/2000/svg viewBox="0 0 512 512">
-
-  <defs>
-
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-
-      <stop offset="0%" stop-color="#5B5BF7"/>
-
-      <stop offset="100%" stop-color="#3B82F6"/>
-
-    </linearGradient>
-
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.18"/>
-
-    </filter>
-
-  </defs>
-
- 
-
-  <rect x="32" y="32" width="448" height="448" rx="108" fill="url(#bg)"/>
-
- 
-
-  <g filter="url(#shadow)">
-
-    <rect x="112" y="112" width="288" height="288" rx="44" fill="#ffffff"/>
-
-  </g>
-
- 
-
-  <circle cx="164" cy="186" r="16" fill="#5B5BF7"/>
-
-  <rect x="196" y="172" width="140" height="28" rx="14" fill="#D6DBFF"/>
-
- 
-
-  <circle cx="164" cy="256" r="16" fill="#5B5BF7"/>
-
-  <rect x="196" y="242" width="140" height="28" rx="14" fill="#D6DBFF"/>
-
- 
-
-  <circle cx="164" cy="326" r="16" fill="#5B5BF7"/>
-
-  <rect x="196" y="312" width="100" height="28" rx="14" fill="#D6DBFF"/>
-
- 
-
-  <path d="M316 326l28 28 52-60" fill="none" stroke="#10B981" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-
-</svg></textarea>
-
- 
-
       <div class="grid" id="iconsGrid"></div>
 
     </div>
@@ -302,51 +216,153 @@
 
   <script>
 
-    function makeDataUrl(size, callback) {
+    function roundRect(ctx, x, y, w, h, r) {
 
-      const svgText = document.getElementById('svgInput').value.trim();
+      ctx.beginPath();
 
-      const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      ctx.moveTo(x + r, y);
 
-      const url = URL.createObjectURL(svgBlob);
+      ctx.lineTo(x + w - r, y);
+
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+
+      ctx.lineTo(x + w, y + h - r);
+
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+
+      ctx.lineTo(x + r, y + h);
+
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+
+      ctx.lineTo(x, y + r);
+
+      ctx.quadraticCurveTo(x, y, x + r, y);
+
+      ctx.closePath();
+
+    }
 
  
 
-      const img = new Image();
+    function drawIcon(size) {
 
-      img.onload = function () {
+      const canvas = document.createElement('canvas');
 
-        const canvas = document.createElement('canvas');
+      canvas.width = size;
 
-        canvas.width = size;
+      canvas.height = size;
 
-        canvas.height = size;
-
-        const ctx = canvas.getContext('2d');
-
-        ctx.clearRect(0, 0, size, size);
-
-        ctx.drawImage(img, 0, 0, size, size);
+      const ctx = canvas.getContext('2d');
 
  
 
-        const dataUrl = canvas.toDataURL('image/png');
+      // 背景
 
-        URL.revokeObjectURL(url);
+      const grad = ctx.createLinearGradient(0, 0, size, size);
 
-        callback(dataUrl);
+      grad.addColorStop(0, '#5B5BF7');
 
-      };
+      grad.addColorStop(1, '#3B82F6');
 
-      img.onerror = function () {
+      ctx.fillStyle = grad;
 
-        document.getElementById('message').textContent = 'SVGの読み込みに失敗しました。';
+      roundRect(ctx, size * 0.0625, size * 0.0625, size * 0.875, size * 0.875, size * 0.21);
 
-        URL.revokeObjectURL(url);
+      ctx.fill();
 
-      };
+ 
 
-      img.src = url;
+      // 白いカード
+
+      ctx.shadowColor = 'rgba(0,0,0,0.15)';
+
+      ctx.shadowBlur = size * 0.03;
+
+      ctx.shadowOffsetY = size * 0.015;
+
+      ctx.fillStyle = '#ffffff';
+
+      roundRect(ctx, size * 0.22, size * 0.22, size * 0.56, size * 0.56, size * 0.085);
+
+      ctx.fill();
+
+ 
+
+      // 影解除
+
+      ctx.shadowColor = 'transparent';
+
+      ctx.shadowBlur = 0;
+
+      ctx.shadowOffsetY = 0;
+
+ 
+
+      // リストの丸
+
+      const dots = [0.365, 0.5, 0.635];
+
+      dots.forEach(y => {
+
+        ctx.beginPath();
+
+        ctx.arc(size * 0.32, size * y, size * 0.031, 0, Math.PI * 2);
+
+        ctx.fillStyle = '#5B5BF7';
+
+        ctx.fill();
+
+      });
+
+ 
+
+      // リストの線
+
+      const lines = [
+
+        { y: 0.336, w: 0.27 },
+
+        { y: 0.471, w: 0.27 },
+
+        { y: 0.606, w: 0.19 }
+
+      ];
+
+      lines.forEach(line => {
+
+        ctx.fillStyle = '#D6DBFF';
+
+        roundRect(ctx, size * 0.385, size * line.y, size * line.w, size * 0.055, size * 0.027);
+
+        ctx.fill();
+
+      });
+
+ 
+
+      // チェック
+
+      ctx.strokeStyle = '#10B981';
+
+      ctx.lineWidth = size * 0.047;
+
+      ctx.lineCap = 'round';
+
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+
+      ctx.moveTo(size * 0.617, size * 0.635);
+
+      ctx.lineTo(size * 0.672, size * 0.69);
+
+      ctx.lineTo(size * 0.773, size * 0.573);
+
+      ctx.stroke();
+
+ 
+
+      return canvas.toDataURL('image/png');
 
     }
 
@@ -360,8 +376,6 @@
 
       div.className = 'item';
 
- 
-
       div.innerHTML = `
 
         <div class="filename">icon-${size}.png</div>
@@ -370,7 +384,7 @@
 
         <div class="help">
 
-          PCなら「画像を新しいタブで開く」→保存。<br>
+          PCなら「保存用に開く」を押して保存。<br>
 
           iPhoneなら画像を長押しして「写真に保存」または「ファイルに保存」してください。
 
@@ -380,8 +394,6 @@
 
       `;
 
- 
-
       grid.appendChild(div);
 
     }
@@ -390,35 +402,19 @@
 
     function generateIcons() {
 
-      document.getElementById('iconsGrid').innerHTML = '';
+      const grid = document.getElementById('iconsGrid');
 
-      document.getElementById('message').textContent = '生成中...';
+      grid.innerHTML = '';
 
- 
-
-      const sizes = [180, 192, 512];
-
-      let done = 0;
+      document.getElementById('message').textContent = '生成しました。保存してください。';
 
  
 
-      sizes.forEach(size => {
+      [180, 192, 512].forEach(size => {
 
-        makeDataUrl(size, function(dataUrl) {
+        const dataUrl = drawIcon(size);
 
-          createIconCard(size, dataUrl);
-
-          done++;
-
-          if (done === sizes.length) {
-
-            document.getElementById('message').textContent =
-
-              '生成できました。保存用に開くを押すか、画像を長押しして保存してください。';
-
-          }
-
-        });
+        createIconCard(size, dataUrl);
 
       });
 
